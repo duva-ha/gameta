@@ -1,31 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti'; // Bạn có thể cài thêm thư viện này sau
 
 const vocabData = [
-  { en: 'Apple', vn: 'Quả táo', emoji: '🍎', color: 'bg-rose-500', shadow: 'shadow-rose-200' },
-  { en: 'Banana', vn: 'Quả chuối', emoji: '🍌', color: 'bg-amber-400', shadow: 'shadow-amber-200' },
-  { en: 'Cat', vn: 'Con mèo', emoji: '🐱', color: 'bg-orange-400', shadow: 'shadow-orange-200' },
-  { en: 'Dog', vn: 'Con chó', emoji: '🐶', color: 'bg-sky-400', shadow: 'shadow-sky-200' },
-  { en: 'Bird', vn: 'Con chim', emoji: '🐦', color: 'bg-emerald-400', shadow: 'shadow-emerald-200' },
-  { en: 'Sun', vn: 'Mặt trời', emoji: '☀️', color: 'bg-yellow-400', shadow: 'shadow-yellow-100' },
+  { en: 'Apple', vn: 'Quả táo', emoji: '🍎', gradient: 'from-rose-400 to-red-500' },
+  { en: 'Banana', vn: 'Quả chuối', emoji: '🍌', gradient: 'from-amber-300 to-yellow-500' },
+  { en: 'Cat', vn: 'Con mèo', emoji: '🐱', gradient: 'from-orange-300 to-orange-500' },
+  { en: 'Dog', vn: 'Con chó', emoji: '🐶', gradient: 'from-sky-300 to-blue-500' },
+  { en: 'Bird', vn: 'Con chim', emoji: '🐦', gradient: 'from-emerald-300 to-teal-500' },
+  { en: 'Sun', vn: 'Mặt trời', emoji: '☀️', gradient: 'from-yellow-200 to-orange-400' },
 ];
 
 export default function App() {
   const [question, setQuestion] = useState(null);
   const [score, setScore] = useState(0);
-  const [isCorrect, setIsCorrect] = useState(null);
+  const [isSuccess, setIsSuccess] = useState(null);
 
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = 'en-US';
-    msg.rate = 0.9;
+    msg.pitch = 1.2; // Giọng cao trẻ trung hơn
+    msg.rate = 0.85;
     window.speechSynthesis.speak(msg);
+  };
+
+  const triggerConfetti = () => {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   };
 
   const nextQuestion = () => {
     const random = vocabData[Math.floor(Math.random() * vocabData.length)];
     setQuestion(random);
-    setIsCorrect(null);
+    setIsSuccess(null);
     speak(`Where is the ${random.en}?`);
   };
 
@@ -33,75 +39,94 @@ export default function App() {
 
   const handleChoice = (item) => {
     if (item.en === question.en) {
-      setScore(score + 10);
-      setIsCorrect(true);
-      speak("Correct!");
-      setTimeout(nextQuestion, 1500);
+      setIsSuccess(true);
+      setScore(prev => prev + 10);
+      speak("Wonderful!");
+      if ((score + 10) % 50 === 0) triggerConfetti();
+      setTimeout(nextQuestion, 1200);
     } else {
-      setIsCorrect(false);
-      speak("Try again!");
-      setTimeout(() => setIsCorrect(null), 800);
+      setIsSuccess(false);
+      speak("Try again, buddy!");
+      setTimeout(() => setIsSuccess(null), 800);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] font-sans text-slate-800 p-4 md:p-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-4 md:p-12 flex flex-col items-center">
+      <div className="max-w-5xl w-full">
         
-        {/* Header Thông minh */}
-        <header className="flex justify-between items-center mb-10 bg-white/60 backdrop-blur-md p-4 rounded-3xl border border-white shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-              <span className="text-white text-2xl font-black">G</span>
+        {/* Top Navigation Bar */}
+        <nav className="flex justify-between items-center mb-16">
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-xl rotate-3 group-hover:rotate-0 transition-all duration-500">
+              <span className="text-white text-3xl font-black italic">G</span>
             </div>
-            <div>
-              <h1 className="font-black text-indigo-900 leading-none">GIA THOẠI</h1>
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Education App</p>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-black text-slate-800 tracking-tighter">GIA THOAI</h1>
+              <p className="text-[10px] font-bold text-slate-400 tracking-[0.3em]">PREMIUM EDUCATION</p>
             </div>
           </div>
-          <div className="bg-white px-6 py-2 rounded-2xl border-2 border-indigo-50 shadow-inner">
-            <span className="text-indigo-600 font-black text-xl">{score} <span className="text-xs text-slate-400">PTS</span></span>
-          </div>
-        </header>
 
-        {/* Thẻ câu hỏi trung tâm */}
-        <section className="relative mb-12 group">
-          <div className={`bg-white rounded-[3rem] p-12 text-center border-b-[12px] transition-all duration-300 ${isCorrect === true ? 'border-green-400' : isCorrect === false ? 'border-red-400' : 'border-slate-100'} shadow-2xl shadow-slate-200`}>
-            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mb-4">Đố con đây là gì?</p>
-            <h2 className="text-6xl md:text-8xl font-black text-slate-800 mb-6 drop-shadow-sm tracking-tight">
-              {question?.en}
-            </h2>
+          <div className="flex items-center gap-6">
+            <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl shadow-sm border border-white/50">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Total Score</p>
+              <p className="text-2xl font-black text-indigo-600 leading-none">{score}</p>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero Section - Question Area */}
+        <main className="grid lg:grid-cols-5 gap-12 items-center">
+          
+          <div className="lg:col-span-2 space-y-8">
+            <div className="space-y-2">
+              <h2 className="text-indigo-600 font-black text-sm uppercase tracking-widest">Question Session</h2>
+              <h3 className="text-5xl md:text-7xl font-black text-slate-900 leading-tight">
+                Find the <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">
+                  {question?.en}
+                </span>
+              </h3>
+            </div>
+            
             <button 
               onClick={() => speak(question?.en)}
-              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto transition-transform active:scale-90"
+              className="flex items-center gap-4 bg-white hover:bg-slate-50 p-4 pr-8 rounded-3xl shadow-lg transition-all active:scale-95 group"
             >
-              <span className="text-2xl">🔊</span>
+              <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <span className="text-xl">🔊</span>
+              </div>
+              <span className="font-black text-slate-700 uppercase tracking-wider">Listen Voice</span>
             </button>
           </div>
-        </section>
 
-        {/* Lưới từ vựng phong cách Bento */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-          {vocabData.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => handleChoice(item)}
-              className={`group relative overflow-hidden bg-white p-8 rounded-[2.5rem] border-2 border-transparent hover:border-indigo-200 transition-all duration-300 hover:-translate-y-2 active:scale-95 shadow-xl shadow-slate-100`}
-            >
-              <div className={`absolute top-0 left-0 w-2 h-full ${item.color}`}></div>
-              <div className="text-7xl mb-4 transform group-hover:scale-125 transition-transform duration-500">
-                {item.emoji}
-              </div>
-              <p className="font-black text-slate-700 text-lg uppercase tracking-wide">{item.en}</p>
-              <p className="text-slate-400 font-medium text-sm italic">{item.vn}</p>
-            </button>
-          ))}
-        </div>
+          {/* Grid Area - Bento Style */}
+          <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-6">
+            {vocabData.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleChoice(item)}
+                className={`btn-premium group relative h-48 rounded-[2.5rem] bg-white flex flex-col items-center justify-center p-6 border-2 border-transparent transition-all overflow-hidden ${isSuccess && item.en === question.en ? 'border-green-400 bg-green-50' : ''}`}
+              >
+                {/* Background Decor */}
+                <div className={`absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-10 transition-opacity rounded-full blur-2xl`}></div>
+                
+                <span className="text-7xl mb-4 group-hover:scale-110 transition-transform duration-500 z-10">{item.emoji}</span>
+                <span className="font-black text-slate-800 text-sm tracking-widest uppercase z-10">{item.en}</span>
+                <div className="mt-2 w-8 h-1 bg-slate-100 rounded-full group-hover:w-16 group-hover:bg-indigo-400 transition-all"></div>
+              </button>
+            ))}
+          </div>
+        </main>
 
-        <footer className="mt-20 text-center">
-          <p className="text-slate-300 font-bold text-[10px] uppercase tracking-[0.5em]">
-            Design for Future Generation • 2026
-          </p>
+        {/* Footer */}
+        <footer className="mt-24 border-t border-slate-200 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 opacity-40">
+          <p className="text-xs font-bold tracking-[0.4em] text-slate-500 italic">CREATIVE LEARNING ECOSYSTEM</p>
+          <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest">
+            <span>React 19</span>
+            <span>Vite 6</span>
+            <span>Tailwind 4</span>
+          </div>
         </footer>
       </div>
     </div>
