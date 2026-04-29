@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#F0F2F5] overflow-x-hidden transition-colors duration-500;
+  }
+}
+
+/* Hiệu ứng trồi sụt cho nút bấm cực sang */
+.btn-premium {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+}
+
+.btn-premium:active {
+  box-shadow: inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff;
+  transform: scale(0.96);
+}
